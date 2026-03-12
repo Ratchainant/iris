@@ -73,34 +73,39 @@ The AI collects and analyzes job descriptions to produce demand distributions br
 ## System Architecture (High Level)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                        IRIS Core                        │
-│                                                         │
-│  ┌──────────────────┐      ┌──────────────────────────┐ │
-│  │ Curriculum Agent │      │  Job Market Agent        │ │
-│  │ ─────────────── │      │  ──────────────────────  │ │
-│  │ • Document parse │      │  • Web scraping/crawling │ │
-│  │ • Skill extract  │      │  • NLP extraction        │ │
-│  │ • Distribution   │      │  • Segmented aggregation │ │
-│  └────────┬─────────┘      └───────────┬──────────────┘ │
-│           │                            │                 │
-│           └──────────┬─────────────────┘                 │
-│                      ▼                                   │
-│           ┌──────────────────────┐                       │
-│           │   Gap Analysis       │                       │
-│           │   Engine             │                       │
-│           │  • Goodness-of-fit   │                       │
-│           │  • Divergence score  │                       │
-│           │  • Ranked gap list   │                       │
-│           └──────────┬───────────┘                       │
-│                      ▼                                   │
-│           ┌──────────────────────┐                       │
-│           │  Reporting Agent     │                       │
-│           │  • Narrative report  │                       │
-│           │  • Recommendations   │                       │
-│           │  • Trend dashboard   │                       │
-│           └──────────────────────┘                       │
-└─────────────────────────────────────────────────────────┘
+Host Machine
+│
+├── Ollama (Gemma 3)  ← runs natively on host; GPU-accelerated if available
+│   └── CUDA (NVIDIA) → MPS (Apple Silicon) → CPU fallback
+│
+├── data/             ← local storage, mounted into containers
+│   ├── job_postings/ ← scraped data (JSON)
+│   ├── programmes/   ← uploaded academic documents (PDF, DOCX)
+│   └── results/      ← gap analysis output (JSON)
+│
+└── Docker Network (iris_net)
+    │
+    ├── nginx          :80   ← reverse proxy (/ → frontend, /api → backend)
+    │
+    ├── frontend       :3000 ← Next.js web UI
+    │   • Programme document upload & folder browser
+    │   • Scraping job controls
+    │   • Gap analysis dashboard & reports
+    │
+    ├── backend        :8000 ← FastAPI
+    │   • File upload & local storage management
+    │   • Scraping orchestration
+    │   • Analysis task dispatch (via Celery)
+    │   • Results API
+    │
+    ├── ai_worker            ← Python / LangGraph
+    │   • Curriculum Analysis Agent
+    │   • Job Market Harvesting Agent
+    │   • Gap Analysis Engine
+    │   • Reporting & Recommendation Agent
+    │   └── calls Ollama on host.docker.internal
+    │
+    └── redis               ← Celery broker & result backend
 ```
 
 ---
@@ -139,11 +144,15 @@ The taxonomy is configurable and can be extended or mapped to external framework
 
 ## Constraints & Assumptions
 
-- Academic programme documents are available in digital format (PDF, DOCX, or structured data)
-- Job postings are publicly accessible and scraping is permitted under applicable terms of service
+- Academic programme documents are uploaded by the user via the web UI (PDF or DOCX) and stored on local host storage
+- Job postings are publicly accessible and scraping is permitted under applicable terms of service; scraped data is stored as JSON on local host storage
+- The AI model (Gemma 3) runs locally via Ollama on the host machine; no external API is used
+- GPU acceleration uses CUDA (NVIDIA) if available, then Apple MPS, then falls back to CPU
+- All Docker services share the same host-mounted data directory; no cloud storage is required
 - Skill taxonomy is defined and maintained separately; initial version is provided by domain experts
 - Timeline aggregation defaults to yearly; finer granularity requires sufficient data volume
 - Analysis is descriptive and advisory; final curriculum decisions remain with human committees
+- Initial release is a single-user local deployment; no user authentication is required
 
 ---
 
@@ -175,17 +184,30 @@ iris/
 ├── readme.md                  # This file
 ├── tech_stack.md              # Technology decisions
 ├── implementation_plan.md     # Detailed development plan
-├── backend/                   # API and core processing services
-├── agents/                    # Agentic AI components
-│   ├── curriculum_agent/
-│   ├── job_market_agent/
-│   ├── gap_analysis_engine/
-│   └── reporting_agent/
-├── data/                      # Raw and processed data
-│   ├── programme/
-│   └── job_postings/
-├── taxonomy/                  # Skill taxonomy definitions
-├── frontend/                  # Dashboard and reporting UI
+├── docker-compose.yml         # Container orchestration
+├── frontend/                  # Next.js web application
+│   ├── app/
+│   ├── components/
+│   └── Dockerfile
+├── backend/                   # FastAPI application
+│   ├── app/
+│   │   ├── api/               # Route handlers
+│   │   ├── agents/            # Agentic AI components
+│   │   │   ├── curriculum_agent/
+│   │   │   ├── job_market_agent/
+│   │   │   ├── gap_analysis_engine/
+│   │   │   └── reporting_agent/
+│   │   ├── tasks/             # Celery task definitions
+│   │   └── utils/
+│   └── Dockerfile
+├── ai_worker/                 # Background AI task worker
+│   └── Dockerfile
+├── nginx/                     # Reverse proxy config
+├── taxonomy/                  # Skill taxonomy definitions (JSON/YAML)
+├── data/                      # Host-mounted local storage (git-ignored)
+│   ├── job_postings/          # Scraped job data (JSON)
+│   ├── programmes/            # Uploaded academic documents
+│   └── results/               # Gap analysis output
 └── scripts/                   # Utility and automation scripts
 ```
 
