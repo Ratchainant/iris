@@ -13,14 +13,16 @@ IRIS runs as a **web application in Docker containers** orchestrated with Docker
 ```
 Host Machine
 ├── docker-compose.yml
-├── data/                          ← mounted into containers (NOT inside Docker)
+├── .env                           ← secrets (git-ignored; copy from .env.example)
+├── config/                        ← runtime config (git-tracked)
+│   └── scraper_config.json        ← scraping targets, selectors, rate limits
+├── data/                          ← mounted into containers (content git-ignored)
 │   ├── job_postings/              ← scraped job data (JSON)
 │   │   └── <source>/<year>/
-│   └── programmes/                ← uploaded academic documents
-│       └── <programme_name>/
-│           ├── year1/
-│           ├── year2/
-│           └── ...
+│   ├── programmes/                ← uploaded academic documents
+│   │   └── <programme_name>/<year>/
+│   └── results/                   ← gap analysis output (JSON)
+│       └── <programme_name>/<timestamp>/
 │
 └── Docker Network (iris_net)
     ├── frontend    (Next.js)       :3000
@@ -215,10 +217,12 @@ Ollama runs on the **host machine** (not in Docker) and is accessed by the AI wo
 
 ## Security Considerations
 
+- Secrets are stored in `.env` (git-ignored); `.env.example` documents all variables with safe placeholders
 - Uploaded documents are stored only on the local host file system; no cloud upload
 - Backend API is not exposed publicly; Nginx acts as the sole entry point
-- File upload validation: MIME type and extension checks (PDF, DOCX only)
+- File upload validation: MIME type and extension checks (PDF, DOCX only); path traversal prevented by sanitizing filenames
 - Scraping respects `robots.txt` and rate limits per target site configuration
+- Scraper configuration (`config/scraper_config.json`) is git-tracked but contains no credentials
 - No user authentication required in the initial release (single-user local deployment)
 
 ---

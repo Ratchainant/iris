@@ -18,9 +18,10 @@
 ### Tasks
 
 #### 0.1 Repository & Project Structure
-- [ ] Create all top-level directories: `frontend/`, `backend/`, `ai_worker/`, `nginx/`, `taxonomy/`, `data/`, `scripts/`
-- [ ] Add `.gitignore` (ignore `data/`, `__pycache__`, `.env`, `node_modules`, etc.)
-- [ ] Add `.env.example` with all required environment variables documented
+- [ ] Create all top-level directories: `frontend/`, `backend/`, `ai_worker/`, `nginx/`, `taxonomy/`, `config/`, `scripts/`
+- [x] Add `.gitignore` (ignores data content, `__pycache__`, `.env`, `node_modules`, etc.)
+- [x] Add `.env.example` with all required environment variables documented
+- [x] Create `data/` subdirectory structure with `.gitkeep` placeholders (`job_postings/`, `programmes/`, `results/`)
 
 #### 0.2 Docker Compose Setup
 - [ ] Write `docker-compose.yml` with services: `frontend`, `backend`, `ai_worker`, `redis`, `nginx`
@@ -96,7 +97,7 @@
 ### Tasks
 
 #### 2.1 Scraper Configuration
-- [ ] Define scraper target config in `data/scraper_config.json`:
+- [ ] Define scraper target config in `config/scraper_config.json` (git-tracked; no credentials):
   - Target sites, URL patterns, CSS/XPath selectors, rate limits, enabled flag
 - [ ] `GET /api/scraper/config` and `PUT /api/scraper/config` — read and update config via API
 

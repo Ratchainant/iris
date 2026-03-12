@@ -6,7 +6,7 @@
 
 > **Codename:** IRIS
 > **Domain:** Text Analytics · Agentic AI
-> **Status:** Planning
+> **Status:** In Progress — Phase 0 (Foundation)
 
 ---
 
@@ -171,24 +171,28 @@ The taxonomy is configurable and can be extended or mapped to external framework
 
 ## Roadmap
 
-| Phase | Milestone |
-|-------|-----------|
-| Phase 1 | Define skill taxonomy; build curriculum ingestion pipeline |
-| Phase 2 | Implement job market harvesting agent and NLP extraction |
-| Phase 3 | Build gap analysis engine with statistical scoring |
-| Phase 4 | Reporting agent and visualization dashboard |
-| Phase 5 | Multi-programme and longitudinal comparison support |
+| Phase | Milestone | Status |
+|-------|-----------|--------|
+| Phase 0 | Project foundation: Docker stack, taxonomy v1, shared schemas | 🔄 In Progress |
+| Phase 1 | Curriculum ingestion: upload documents, extract skill distribution | ⬜ Planned |
+| Phase 2 | Job market harvesting: scrape postings, build demand distributions | ⬜ Planned |
+| Phase 3 | Gap analysis engine: goodness-of-fit scoring, ranked gaps | ⬜ Planned |
+| Phase 4 | Reporting & visualization: dashboard, AI-generated reports | ⬜ Planned |
+| Phase 5 | Multi-programme comparison, longitudinal tracking, export | ⬜ Planned |
 
 ---
 
-## Repository Structure (Planned)
+## Repository Structure
 
 ```
 iris/
 ├── readme.md                  # This file
 ├── tech_stack.md              # Technology decisions
 ├── implementation_plan.md     # Detailed development plan
+├── .gitignore
+├── .env.example               # Environment variable template
 ├── docker-compose.yml         # Container orchestration
+├── assets/                    # Project assets (logo, images)
 ├── frontend/                  # Next.js web application
 │   ├── app/
 │   ├── components/
@@ -201,6 +205,7 @@ iris/
 │   │   │   ├── job_market_agent/
 │   │   │   ├── gap_analysis_engine/
 │   │   │   └── reporting_agent/
+│   │   ├── schemas/           # Shared Pydantic schemas
 │   │   ├── tasks/             # Celery task definitions
 │   │   └── utils/
 │   └── Dockerfile
@@ -208,7 +213,9 @@ iris/
 │   └── Dockerfile
 ├── nginx/                     # Reverse proxy config
 ├── taxonomy/                  # Skill taxonomy definitions (JSON/YAML)
-├── data/                      # Host-mounted local storage (git-ignored)
+├── config/                    # Runtime configuration files
+│   └── scraper_config.json    # Scraping target sites and rules
+├── data/                      # Host-mounted local storage (content git-ignored)
 │   ├── job_postings/          # Scraped job data (JSON)
 │   ├── programmes/            # Uploaded academic documents
 │   └── results/               # Gap analysis output
