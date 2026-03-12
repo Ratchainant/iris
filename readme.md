@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/iris.svg" alt="IRIS Logo" width="180" />
+</p>
+
 # IRIS — Skill Gap Intelligence System
 
 > **Codename:** IRIS
